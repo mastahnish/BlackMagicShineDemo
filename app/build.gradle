@@ -48,6 +48,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:18.0.0'
     kapt 'com.google.dagger:hilt-compiler:2.41'
     implementation 'com.karumi:dexter:6.2.3'
+    implementation 'com.squareup:seismic:1.0.3'
 
 
     testImplementation 'junit:junit:4.13.2'
