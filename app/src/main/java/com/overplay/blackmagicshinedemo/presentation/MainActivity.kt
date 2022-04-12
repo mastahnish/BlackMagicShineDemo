@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.hardware.SensorManager
 import android.location.Location
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
@@ -30,14 +31,16 @@ import com.overplay.blackmagicshinedemo.databinding.ActivityMainBinding
 import com.overplay.blackmagicshinedemo.extensions.countdownListener
 import com.overplay.blackmagicshinedemo.extensions.scaleAnimation
 import com.overplay.blackmagicshinedemo.presentation.countdown.CountDownAnimation
+import com.squareup.seismic.ShakeDetector
 import dagger.hilt.android.AndroidEntryPoint
+
 
 /**
  * This is the main activity that holds the MediaSession and shows the player.
  * As this is the video app I'll go with the single-activity architecture
  */
 @AndroidEntryPoint
-open class MainActivity : AppCompatActivity() {
+open class MainActivity : AppCompatActivity(), ShakeDetector.Listener {
 
     private val binding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityMainBinding.inflate(layoutInflater)
@@ -63,6 +66,7 @@ open class MainActivity : AppCompatActivity() {
 
         checkPermissions()
         initUi()
+        initShakeSensitivity()
     }
 
     private fun checkPermissions() {
@@ -163,6 +167,14 @@ open class MainActivity : AppCompatActivity() {
         }.start()
     }
 
+    private fun initShakeSensitivity() {
+        ShakeDetector(this).start(getSystemService(SENSOR_SERVICE) as SensorManager)
+    }
+
+    override fun hearShake() {
+        viewModel.getMediaPlayer().pause()
+    }
+
     @SuppressLint("MissingPermission")
     private fun initGeofencing() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -241,4 +253,6 @@ open class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+
 }
