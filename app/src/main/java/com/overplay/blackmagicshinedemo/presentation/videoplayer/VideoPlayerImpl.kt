@@ -8,6 +8,7 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.overplay.blackmagicshinedemo.constants.Constants
+import com.overplay.blackmagicshinedemo.constants.Constants.Companion.VIDEO_START
 
 /***
  * This is a specific implementation of MediaPlayer. For the need of this app there's only
@@ -68,6 +69,10 @@ class VideoPlayerImpl(private val context: Context) : MediaPlayer {
 
     override fun seekBack() {
         exoPlayer?.seekBack()
+    }
+
+    override fun reset() {
+        exoPlayer?.seekTo(VIDEO_START)
     }
 
 }

@@ -13,4 +13,5 @@ interface MediaPlayer {
     fun volumeDown()
     fun seekForward()
     fun seekBack()
+    fun reset()
 }
