@@ -1,17 +1,19 @@
 package com.overplay.blackmagicshinedemo.presentation
 
 import android.annotation.SuppressLint
-import android.os.Build.*
+import android.os.Build.VERSION
+import android.os.Build.VERSION_CODES
 import android.os.Bundle
-import android.view.animation.Animation
-import android.view.animation.ScaleAnimation
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.android.exoplayer2.util.Util
+import com.overplay.blackmagicshinedemo.constants.Constants.Companion.DELAY_IN_SECONDS
 import com.overplay.blackmagicshinedemo.databinding.ActivityMainBinding
+import com.overplay.blackmagicshinedemo.extensions.countdownListener
+import com.overplay.blackmagicshinedemo.extensions.scaleAnimation
 import com.overplay.blackmagicshinedemo.presentation.countdown.CountDownAnimation
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -20,7 +22,7 @@ import dagger.hilt.android.AndroidEntryPoint
  * As this is the video app I'll go with the single-activity architecture
  */
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+open class MainActivity : AppCompatActivity() {
 
     private val binding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityMainBinding.inflate(layoutInflater)
@@ -79,7 +81,6 @@ class MainActivity : AppCompatActivity() {
         window.setDecorFitsSystemWindows(false)
     }
 
-
     private fun initUi() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         hideSystemBars()
@@ -99,19 +100,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initCountDown() {
-        CountDownAnimation(binding.countdown, 4).apply {
-            setAnimation(
-                ScaleAnimation(
-                    1.0f, 0.0f, 1.0f,
-                    0.0f, Animation.RELATIVE_TO_SELF, 0.5f,
-                    Animation.RELATIVE_TO_SELF, 0.5f
-                )
-            )
-            setCountDownListener(object : CountDownAnimation.CountDownListener{
-                override fun onCountDownEnd(animation: CountDownAnimation?) {
-                    viewModel.getMediaPlayer().play()
-                }
-            })
+        CountDownAnimation(binding.countdown, DELAY_IN_SECONDS).apply {
+            scaleAnimation()
+            countdownListener { viewModel.getMediaPlayer().play() }
         }.start()
     }
 }
