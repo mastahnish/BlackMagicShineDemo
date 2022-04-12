@@ -34,7 +34,6 @@ import com.overplay.blackmagicshinedemo.presentation.countdown.CountDownAnimatio
 import com.squareup.seismic.ShakeDetector
 import dagger.hilt.android.AndroidEntryPoint
 
-
 /**
  * This is the main activity that holds the MediaSession and shows the player.
  * As this is the video app I'll go with the single-activity architecture
@@ -253,6 +252,4 @@ open class MainActivity : AppCompatActivity(), ShakeDetector.Listener {
             }
         }
     }
-
-
 }
