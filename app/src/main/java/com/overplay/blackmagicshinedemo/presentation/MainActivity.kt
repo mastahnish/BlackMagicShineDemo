@@ -3,13 +3,16 @@ package com.overplay.blackmagicshinedemo.presentation
 import android.annotation.SuppressLint
 import android.os.Build.*
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.view.animation.Animation
+import android.view.animation.ScaleAnimation
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.android.exoplayer2.util.Util
 import com.overplay.blackmagicshinedemo.databinding.ActivityMainBinding
+import com.overplay.blackmagicshinedemo.presentation.countdown.CountDownAnimation
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -42,7 +45,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         if (Util.SDK_INT >= VERSION_CODES.N) {
             initPlayerUi()
-            viewModel.getMediaPlayer().play()
+            initCountDown()
         }
     }
 
@@ -51,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         hideSystemUi()
         if ((Util.SDK_INT < VERSION_CODES.N || viewModel.getMediaPlayer().getPlayer() == null)) {
             initPlayerUi()
-            viewModel.getMediaPlayer().play()
+            initCountDown()
         }
     }
 
@@ -80,6 +83,7 @@ class MainActivity : AppCompatActivity() {
     private fun initUi() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         hideSystemBars()
+        initCountDown()
     }
 
     private fun initPlayerUi() {
@@ -92,5 +96,22 @@ class MainActivity : AppCompatActivity() {
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+    }
+
+    private fun initCountDown() {
+        CountDownAnimation(binding.countdown, 4).apply {
+            setAnimation(
+                ScaleAnimation(
+                    1.0f, 0.0f, 1.0f,
+                    0.0f, Animation.RELATIVE_TO_SELF, 0.5f,
+                    Animation.RELATIVE_TO_SELF, 0.5f
+                )
+            )
+            setCountDownListener(object : CountDownAnimation.CountDownListener{
+                override fun onCountDownEnd(animation: CountDownAnimation?) {
+                    viewModel.getMediaPlayer().play()
+                }
+            })
+        }.start()
     }
 }
