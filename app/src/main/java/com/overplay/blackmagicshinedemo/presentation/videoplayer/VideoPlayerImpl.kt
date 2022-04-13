@@ -75,4 +75,7 @@ class VideoPlayerImpl(private val context: Context) : MediaPlayer {
         exoPlayer?.seekTo(VIDEO_START)
     }
 
+    override fun isPlaying(): Boolean? = exoPlayer?.isPlaying
+
+
 }
