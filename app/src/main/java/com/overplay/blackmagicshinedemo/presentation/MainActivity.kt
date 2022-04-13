@@ -1,6 +1,6 @@
 package com.overplay.blackmagicshinedemo.presentation
 
-import android.Manifest
+import android.Manifest.permission.*
 import android.R
 import android.annotation.SuppressLint
 import android.app.PendingIntent
@@ -13,6 +13,7 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.os.Looper
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -31,19 +32,18 @@ import com.overplay.blackmagicshinedemo.databinding.ActivityMainBinding
 import com.overplay.blackmagicshinedemo.extensions.countdownListener
 import com.overplay.blackmagicshinedemo.extensions.scaleAnimation
 import com.overplay.blackmagicshinedemo.presentation.countdown.CountDownAnimation
+import com.overplay.blackmagicshinedemo.presentation.gyroscope.Gyroscope
 import com.squareup.seismic.ShakeDetector
 import dagger.hilt.android.AndroidEntryPoint
 
-/**
- * This is the main activity that holds the MediaSession and shows the player.
- * As this is the video app I'll go with the single-activity architecture
- */
 @AndroidEntryPoint
 open class MainActivity : AppCompatActivity(), ShakeDetector.Listener {
 
     private val binding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityMainBinding.inflate(layoutInflater)
     }
+
+    private lateinit var gyroscope: Gyroscope
 
     private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
@@ -66,18 +66,25 @@ open class MainActivity : AppCompatActivity(), ShakeDetector.Listener {
         checkPermissions()
         initUi()
         initShakeSensitivity()
+        initGyroscopeControls()
+    }
+
+    private fun initGyroscopeControls() {
+        gyroscope = Gyroscope(this) { xAxis, yAxis, zAxis ->
+            viewModel.controlMediaPlayerWithRotationAxis(xAxis, yAxis, zAxis)
+        }
     }
 
     private fun checkPermissions() {
         Dexter.withContext(this)
             .withPermissions(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
+                ACCESS_FINE_LOCATION,
+                ACCESS_COARSE_LOCATION,
+                ACCESS_BACKGROUND_LOCATION
             ).withListener(object : MultiplePermissionsListener {
                 override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
                     if (report?.areAllPermissionsGranted() == true) {
                         initGeofencing()
-
                     } else {
                         DialogOnAnyDeniedMultiplePermissionsListener.Builder
                             .withContext(applicationContext)
@@ -97,12 +104,6 @@ open class MainActivity : AppCompatActivity(), ShakeDetector.Listener {
             }).check()
     }
 
-    /**
-     * DISCLAIMER: Android API level 24 and higher supports multiple windows.
-     * As the app can be visible, but not active in split window mode, I need to initialize the player in onStart.
-     * Android API level 24 and lower requires to wait as long as possible until I grab resources,
-     * so need wait until onResume before initializing the player.
-     */
     override fun onStart() {
         super.onStart()
         if (Util.SDK_INT >= VERSION_CODES.N) {
@@ -120,14 +121,9 @@ open class MainActivity : AppCompatActivity(), ShakeDetector.Listener {
         }
     }
 
-    /**
-     * DISCLAIMER: In Android 6.0 (API level 23) and earlier there is no guarantee of when onStop() is called;
-     * it could get called 5 seconds after your activity disappears.
-     * Therefore, in Android versions earlier than 7.0, your app should stop playback in onPause().
-     * In Android 7.0 and beyond, the system calls onStop() as soon as the activity becomes not visible, so this is not a problem.
-     */
     override fun onPause() {
         super.onPause()
+        gyroscope.unregister()
         if (VERSION.SDK_INT < VERSION_CODES.N) viewModel.getMediaPlayer().release()
     }
 
@@ -162,7 +158,10 @@ open class MainActivity : AppCompatActivity(), ShakeDetector.Listener {
     private fun initCountDown() {
         CountDownAnimation(binding.countdown, DELAY_IN_SECONDS).apply {
             scaleAnimation()
-            countdownListener { viewModel.getMediaPlayer().play() }
+            countdownListener {
+                viewModel.getMediaPlayer().play()
+                gyroscope.register()
+            }
         }.start()
     }
 
@@ -171,7 +170,7 @@ open class MainActivity : AppCompatActivity(), ShakeDetector.Listener {
     }
 
     override fun hearShake() {
-        viewModel.getMediaPlayer().pause()
+        if (viewModel.getMediaPlayer().isPlaying() == true) viewModel.getMediaPlayer().pause()
     }
 
     @SuppressLint("MissingPermission")
@@ -188,6 +187,10 @@ open class MainActivity : AppCompatActivity(), ShakeDetector.Listener {
             geoFencingClient.addGeofences(lastLocationGeofencingRequest, geofencePendingIntent)
                 .addOnSuccessListener { viewModel.getMediaPlayer().reset() }
                 .addOnFailureListener { e ->
+                    Log.e(
+                        MainActivity::javaClass.name,
+                        "${e.localizedMessage} | ${e.stackTraceToString()}"
+                    )
                     Snackbar.make(
                         binding.root,
                         "${e.message}",
@@ -216,6 +219,10 @@ open class MainActivity : AppCompatActivity(), ShakeDetector.Listener {
                 )
                     .addOnSuccessListener { viewModel.getMediaPlayer().reset() }
                     .addOnFailureListener { e ->
+                        Log.e(
+                            MainActivity::javaClass.name,
+                            "${e.localizedMessage} | ${e.stackTraceToString()}"
+                        )
                         Snackbar.make(
                             binding.root,
                             "${e.message}",
@@ -239,6 +246,7 @@ open class MainActivity : AppCompatActivity(), ShakeDetector.Listener {
             if (geofencingEvent.hasError()) {
                 val errorMessage = GeofenceStatusCodes
                     .getStatusCodeString(geofencingEvent.errorCode)
+                Log.e(MainActivity::javaClass.name, "$errorMessage")
                 Snackbar.make(
                     binding.root,
                     "$errorMessage",

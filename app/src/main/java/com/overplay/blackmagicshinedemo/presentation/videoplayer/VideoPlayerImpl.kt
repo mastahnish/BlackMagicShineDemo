@@ -8,6 +8,7 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.overplay.blackmagicshinedemo.constants.Constants
+import com.overplay.blackmagicshinedemo.constants.Constants.Companion.TWO_SECONDS_MILLIS
 import com.overplay.blackmagicshinedemo.constants.Constants.Companion.VIDEO_START
 
 /***
@@ -64,15 +65,22 @@ class VideoPlayerImpl(private val context: Context) : MediaPlayer {
     }
 
     override fun seekForward() {
-        exoPlayer?.seekForward()
+        exoPlayer?.run{
+            seekTo(currentPosition + TWO_SECONDS_MILLIS)
+        }
     }
 
     override fun seekBack() {
-        exoPlayer?.seekBack()
+        exoPlayer?.run{
+            seekTo(currentPosition - TWO_SECONDS_MILLIS)
+        }
     }
 
     override fun reset() {
         exoPlayer?.seekTo(VIDEO_START)
     }
+
+    override fun isPlaying(): Boolean? = exoPlayer?.isPlaying
+
 
 }

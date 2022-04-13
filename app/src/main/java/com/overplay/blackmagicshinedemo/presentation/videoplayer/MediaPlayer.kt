@@ -14,4 +14,5 @@ interface MediaPlayer {
     fun seekForward()
     fun seekBack()
     fun reset()
+    fun isPlaying(): Boolean?
 }
