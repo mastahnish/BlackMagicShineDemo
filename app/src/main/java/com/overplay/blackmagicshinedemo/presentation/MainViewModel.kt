@@ -27,13 +27,11 @@ class MainViewModel @Inject constructor(private val videoPlayer: MediaPlayer) : 
     }
 
     fun controlMediaPlayerWithRotationAxis(tx: Float, ty: Float, tz: Float) {
-        Log.d("GYRO", "tx: $tx | ty: $ty | tz: $tz")
-        //TODO find the proper way to seek through the video based on gyro data
         when {
-            tz > 1.5f -> videoPlayer.seekBack()
-            tz < -1.5f -> videoPlayer.seekForward()
-            tx > 1.5f -> videoPlayer.volumeDown()
-            tx < -1.5f -> videoPlayer.volumeUp()
+            tz > 1.0f -> videoPlayer.seekBack()
+            tz < -1.0f -> videoPlayer.seekForward()
+            tx > 1.0f -> videoPlayer.volumeUp()
+            tx < -1.0f -> videoPlayer.volumeDown()
         }
     }
 
