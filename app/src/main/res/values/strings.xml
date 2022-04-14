@@ -2,4 +2,8 @@
     <string name="app_name">BlackMagicShineDemo</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="location_services_permission_dialog_title">Location Services Permission</string>
+    <string name="location_services_permission_dialog_description">Location Services Permission is needed to allow to control the video within GeoFencing.</string>
+    <string name="ok">OK</string>
+    <string name="location_permissions_denied">Background location permissions denied. Please allow for all time.</string>
 </resources>
